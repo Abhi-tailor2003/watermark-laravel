@@ -1,0 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap');
+:root { font-family: 'Manrope', sans-serif; color: #17211b; background: #e8eee6; font-synthesis: none; }
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; background: radial-gradient(circle at 10% 5%, #f8fbf5 0, transparent 27rem), linear-gradient(135deg, #e8eee6, #dfe8e0); }
+.shell { width: min(1180px, calc(100% - 48px)); margin: 0 auto; padding: 72px 0 38px; }
+.masthead { display: flex; justify-content: space-between; gap: 36px; align-items: flex-start; margin-bottom: 50px; }
+.eyebrow, .step, .badge, .count, .status, footer, .hint { font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: .08em; font-size: 11px; }
+.eyebrow { color: #6a7e6d; margin: 0 0 18px; }
+h1 { font-size: clamp(42px, 7vw, 86px); line-height: .95; letter-spacing: -.06em; max-width: 720px; margin: 0; font-weight: 800; }
+.lede { color: #5e7163; max-width: 470px; line-height: 1.7; margin: 25px 0 0; }
+.status { color: #45664b; padding: 12px 15px; border: 1px solid #b7c8b8; background: #edf5ea; }
+.status span { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #5aa364; margin-right: 8px; }
+.workspace { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 22px; }
+.upload-panel, .history-panel { background: rgba(250, 252, 248, .8); border: 1px solid #c8d5c8; padding: 30px; box-shadow: 10px 10px 0 rgba(143, 166, 145, .16); }
+.panel-heading { display: flex; justify-content: space-between; gap: 18px; align-items: center; padding-bottom: 24px; border-bottom: 1px solid #d8e2d7; margin-bottom: 27px; }
+.panel-heading > div { display: flex; align-items: center; gap: 13px; }
+.panel-heading h2 { font-size: 19px; letter-spacing: -.03em; margin: 0; }
+.step { color: #849787; }
+.badge { background: #d7e8d4; color: #42714c; padding: 8px 10px; }
+.field-label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+input:not([type=file]) { width: 100%; padding: 15px; border: 1px solid #b9cbb9; background: #f8fbf6; color: #17211b; font: inherit; outline: none; }
+input:not([type=file]):focus { border-color: #56845d; box-shadow: 0 0 0 3px #cfe2ce; }
+.hint { color: #78897b; text-transform: none; letter-spacing: 0; line-height: 1.5; margin: 9px 0 21px; }
+.dropzone { min-height: 170px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px; text-align: center; border: 1px dashed #8eab91; background: #eff6ed; cursor: pointer; padding: 20px; }
+.dropzone input { display: none; }
+.upload-icon { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid #709375; border-radius: 50%; font-size: 24px; color: #4e7957; }
+.dropzone strong { font-size: 14px; }
+.dropzone span:last-child { font-size: 11px; color: #738476; }
+button { width: 100%; margin-top: 20px; padding: 16px; border: 0; background: #234d2c; color: #f7fff5; font: 700 14px 'Manrope', sans-serif; cursor: pointer; }
+button span { font-size: 19px; margin-left: 8px; vertical-align: -1px; }
+.count { color: #5c795f; }
+.file-row { display: flex; align-items: center; gap: 14px; padding: 16px 0; border-bottom: 1px solid #d8e2d7; }
+.file-type { width: 43px; height: 43px; display: grid; place-items: center; background: #dbe9d9; color: #376440; font: 10px 'DM Mono', monospace; flex: 0 0 auto; }
+.file-info { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.file-info strong { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-info span, .file-info small { color: #758276; font-size: 11px; }
+.file-info small { color: #527259; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.download { color: #285d35; border: 1px solid #a8c2a9; width: 34px; height: 34px; display: grid; place-items: center; font-size: 20px; text-decoration: none; }
+.empty { display: grid; place-items: center; min-height: 220px; color: #7c8d7e; text-align: center; }
+.empty span { font-size: 38px; color: #9ab29c; }
+.empty p { font-size: 13px; }
+.notice { padding: 13px 16px; margin: -25px 0 25px; font-size: 13px; }
+.success { background: #d7e9d6; color: #35613d; }
+.error { background: #f3deda; color: #884336; }
+footer { color: #718174; margin-top: 28px; text-transform: none; letter-spacing: 0; }
+@media (max-width: 760px) { .shell { width: min(100% - 28px, 560px); padding-top: 36px; } .masthead { flex-direction: column; margin-bottom: 35px; } h1 { font-size: 50px; } .workspace { grid-template-columns: 1fr; } .upload-panel, .history-panel { padding: 22px; } }@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
