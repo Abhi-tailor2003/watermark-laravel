@@ -11,7 +11,7 @@
         <header class="masthead">
             <div>
                 <p class="eyebrow">Private file desk</p>
-                <h1>Mark it before it moves.</h1>
+                <h1>ADD WATERMARK</h1>
                 <p class="lede">Every download is a processed copy with a visible record of the user IDs that handled it.</p>
             </div>
             <div class="status"><span></span> Processing online</div>

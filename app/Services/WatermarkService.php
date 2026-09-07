@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use RuntimeException;
-use Setasign\Fpdi\Tcpdf\Fpdi;
+use setasign\Fpdi\Tcpdf\Fpdi;
 
 class WatermarkService
 {
@@ -16,13 +16,14 @@ class WatermarkService
     {
         $extension = strtolower($file->getClientOriginalExtension());
         $watermarkIds = array_values(array_unique(array_merge($previous?->watermark_ids ?? [], [$userId])));
+        $previousWatermarkCount = count($previous?->watermark_ids ?? []);
         $sourcePath = $previous ? Storage::disk('local')->path($previous->stored_path) : $file->getRealPath();
 
         if ($this->isImage($extension)) {
-            $processedPath = $this->watermarkImage($sourcePath, $extension, $watermarkIds);
+            $processedPath = $this->watermarkImage($sourcePath, $extension, $userId, $previousWatermarkCount);
             $mime = $this->imageMime($extension);
         } elseif ($extension === 'pdf') {
-            $processedPath = $this->watermarkPdf($sourcePath, $watermarkIds);
+            $processedPath = $this->watermarkPdf($sourcePath, $userId, $previousWatermarkCount);
             $mime = 'application/pdf';
         } elseif ($this->isSpreadsheet($extension)) {
             $processedPath = $this->watermarkSpreadsheet($sourcePath, $watermarkIds);
@@ -34,7 +35,7 @@ class WatermarkService
         return ['path' => $processedPath, 'mime' => $mime, 'extension' => $extension, 'watermark_ids' => $watermarkIds];
     }
 
-    private function watermarkImage(string $sourcePath, string $extension, array $watermarkIds): string
+    private function watermarkImage(string $sourcePath, string $extension, string $userId, int $previousWatermarkCount): string
     {
         $image = imagecreatefromstring((string) file_get_contents($sourcePath));
         if ($image === false) throw new RuntimeException('The image could not be read.');
@@ -42,18 +43,12 @@ class WatermarkService
         $width = imagesx($image);
         $height = imagesy($image);
         $font = 5;
-        $text = 'WATERMARK: '.implode(' | ', $watermarkIds);
-        $stepX = max(imagefontwidth($font) * strlen($text) + 80, 260);
-        $stepY = max(imagefontheight($font) + 55, 100);
+        $text = 'WATERMARK: '.$userId;
         $color = imagecolorallocatealpha($image, 180, 30, 30, 65);
         $background = imagecolorallocatealpha($image, 255, 255, 255, 95);
-
-        for ($y = -$height; $y < $height * 2; $y += $stepY) {
-            for ($x = -$width; $x < $width * 2; $x += $stepX) {
-                imagestring($image, $font, $x + 1, $y + 1, $text, $background);
-                imagestring($image, $font, $x, $y, $text, $color);
-            }
-        }
+        [$x, $y] = $this->imageWatermarkPosition($width, $height, $previousWatermarkCount, imagefontheight($font));
+        imagestring($image, $font, $x + 1, $y + 1, $text, $background);
+        imagestring($image, $font, $x, $y, $text, $color);
 
         $outputPath = $this->temporaryPath($extension);
         $saved = match ($extension) {
@@ -68,13 +63,13 @@ class WatermarkService
         return $outputPath;
     }
 
-    private function watermarkPdf(string $sourcePath, array $watermarkIds): string
+    private function watermarkPdf(string $sourcePath, string $userId, int $previousWatermarkCount): string
     {
         $pdf = new Fpdi;
         $pdf->setPrintHeader(false);
         $pdf->setPrintFooter(false);
         $pageCount = $pdf->setSourceFile($sourcePath);
-        $text = 'WATERMARK: '.implode(' | ', $watermarkIds);
+        $text = 'WATERMARK: '.$userId;
 
         for ($page = 1; $page <= $pageCount; $page++) {
             $template = $pdf->importPage($page);
@@ -84,9 +79,8 @@ class WatermarkService
             $pdf->SetFont('helvetica', 'B', 11);
             $pdf->SetTextColor(160, 25, 25);
             $pdf->SetAlpha(0.32);
-            for ($y = 20; $y < $size['height']; $y += 45) {
-                for ($x = 8; $x < $size['width']; $x += 78) $pdf->Text($x, $y, $text);
-            }
+            [$x, $y] = $this->pdfWatermarkPosition($size['width'], $size['height'], $previousWatermarkCount);
+            $pdf->Text($x, $y, $text);
             $pdf->SetAlpha(1);
         }
 
@@ -112,6 +106,32 @@ class WatermarkService
     }
 
     private function temporaryPath(string $extension): string { return sys_get_temp_dir().'\\'.Str::uuid().'.'.$extension; }
+    private function imageWatermarkPosition(int $width, int $height, int $watermarkIndex, int $textHeight): array
+    {
+        $columns = 3;
+        $cellWidth = $width / $columns;
+        $cellHeight = max($textHeight + 32, 56);
+        $column = $watermarkIndex % $columns;
+        $row = intdiv($watermarkIndex, $columns);
+
+        return [
+            (int) ($column * $cellWidth + 10),
+            (int) ($row * $cellHeight + 10),
+        ];
+    }
+    private function pdfWatermarkPosition(float $width, float $height, int $watermarkIndex): array
+    {
+        $columns = 3;
+        $cellWidth = $width / $columns;
+        $cellHeight = 28;
+        $column = $watermarkIndex % $columns;
+        $row = intdiv($watermarkIndex, $columns);
+
+        return [
+            $column * $cellWidth + 8,
+            $row * $cellHeight + 12,
+        ];
+    }
     private function isImage(string $extension): bool { return in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true); }
     private function isSpreadsheet(string $extension): bool { return in_array($extension, ['xlsx', 'xls', 'ods', 'csv'], true); }
     private function imageMime(string $extension): string { return match ($extension) { 'jpg', 'jpeg' => 'image/jpeg', 'png' => 'image/png', 'gif' => 'image/gif', 'webp' => 'image/webp', default => 'application/octet-stream' }; }

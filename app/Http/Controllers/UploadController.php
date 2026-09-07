@@ -15,7 +15,7 @@ class UploadController extends Controller
 {
     public function index(): View
     {
-        $uploads = Schema::hasTable('uploads') ? Upload::query()->latest()->limit(25)->get() : collect();
+        $uploads = Schema::hasTable('uploads') ? Upload::query()->latest()->limit(5)->get() : collect();
 
         return view('welcome', ['uploads' => $uploads]);
     }
